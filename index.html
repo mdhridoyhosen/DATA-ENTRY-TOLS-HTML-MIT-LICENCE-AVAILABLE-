@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Account Formatter - Single Entry Pro</title>
+  <style>
+    :root {
+      --bg: #0f172a; --panel: #111827; --border: #1f2937;
+      --accent: #22c55e; --accent-2: #38bdf8; --text: #e5e7eb;
+      --muted: #94a3b8; --error: #ef4444; --warning: #f97316;
+      --user-color: #38bdf8; --pass-color: #f97316; --cookie-color: #4ade80;
+    }
+    * { box-sizing: border-box; font-family: "Segoe UI", sans-serif; }
+    body {
+      margin: 0; min-height: 100vh;
+      background: radial-gradient(circle at top, rgba(56, 189, 248, 0.1), var(--bg)), var(--bg);
+      color: var(--text); padding: 15px; display: flex; flex-direction: column; align-items: center;
+    }
+    
+    .app-container { width: min(100%, 500px); display: flex; flex-direction: column; gap: 15px; }
+    
+    /* Card Styles */
+    .card { background: var(--panel); border: 1px solid var(--border); border-radius: 14px; padding: 15px; box-shadow: 0 8px 20px rgba(0,0,0,0.3); }
+    .card-title { font-size: 14px; color: var(--muted); margin-bottom: 12px; font-weight: bold; border-bottom: 1px dashed var(--border); padding-bottom: 8px; }
+
+    /* Default Password Section */
+    .def-pass-row { display: flex; align-items: center; gap: 10px; }
+    .def-pass-row input { 
+      flex: 1; background: #070b14; color: var(--pass-color); border: 1px solid var(--border); 
+      padding: 10px; border-radius: 8px; font-size: 16px; font-weight: bold; outline: none; text-align: center;
+    }
+    
+    /* Input Groups */
+    .input-group { margin-bottom: 15px; background: #070b14; border: 1px solid var(--border); border-radius: 10px; padding: 10px; position: relative; }
+    .input-group:last-child { margin-bottom: 0; }
+    .group-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+    .group-label { font-size: 13px; font-weight: bold; }
+    .lbl-user { color: var(--user-color); } .lbl-pass { color: var(--pass-color); } .lbl-cookie { color: var(--cookie-color); }
+    
+    .btn-paste {
+      background: #1f2937; color: var(--text); border: 1px solid #334155; padding: 6px 12px;
+      border-radius: 6px; font-size: 12px; font-weight: bold; cursor: pointer; transition: 0.2s; touch-action: manipulation;
+    }
+    .btn-paste:active { transform: scale(0.95); background: var(--accent-2); color: #000; }
+    
+    .input-group input {
+      width: 100%; background: transparent; border: none; border-bottom: 2px solid #334155;
+      padding: 8px 5px; font-size: 14px; color: var(--text); font-family: monospace; outline: none; transition: 0.3s;
+    }
+    .input-group input:focus { border-bottom-color: var(--accent-2); }
+
+    /* Action Buttons */
+    .action-area { display: flex; justify-content: center; min-height: 50px; align-items: center; }
+    .main-btn {
+      width: 100%; padding: 15px; border-radius: 12px; font-size: 16px; font-weight: bold; border: none; 
+      cursor: pointer; transition: 0.3s; box-shadow: 0 4px 15px rgba(0,0,0,0.2); display: none; touch-action: manipulation;
+    }
+    .btn-convert { background: linear-gradient(135deg, var(--accent-2), #0284c7); color: #fff; }
+    .btn-push { background: linear-gradient(135deg, var(--accent), #16a34a); color: #000; }
+    .main-btn:active { transform: translateY(2px); }
+
+    /* Logs Area */
+    .log-box { max-height: 250px; overflow-y: auto; display: flex; flex-direction: column; gap: 8px; }
+    .log-item { background: #070b14; border-left: 4px solid var(--muted); padding: 10px; border-radius: 6px; font-size: 13px; font-family: monospace; line-height: 1.4; word-break: break-all; }
+    .log-item.success { border-color: var(--accent); }
+    .log-item.error { border-color: var(--error); }
+    .log-item.info { border-color: var(--accent-2); }
+    .log-time { color: #6b7280; font-size: 11px; margin-bottom: 4px; display: block; }
+
+  </style>
+</head>
+<body>
+
+  <div class="app-container">
+    
+    <div class="card">
+      <div class="card-title">⚙️ ডিফল্ট পাসওয়ার্ড (Local Storage)</div>
+      <div class="def-pass-row">
+        <input type="text" id="defPassInput" placeholder="Enter Default Password" title="এটি সেভ থাকবে">
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">📝 অ্যাকাউন্ট এন্ট্রি (১টি করে)</div>
+      
+      <div class="input-group">
+        <div class="group-header">
+          <span class="group-label lbl-user">1. Username</span>
+          <button class="btn-paste" onclick="pasteField('user')">📋 Paste User</button>
+        </div>
+        <input type="text" id="inUser" placeholder="ইউজারনেম দিন..." autocomplete="off">
+      </div>
+
+      <div class="input-group">
+        <div class="group-header">
+          <span class="group-label lbl-pass">2. Password</span>
+          <button class="btn-paste" onclick="pasteField('pass')">📋 Paste Pass</button>
+        </div>
+        <input type="text" id="inPass" placeholder="পাসওয়ার্ড দিন..." autocomplete="off">
+      </div>
+
+      <div class="input-group">
+        <div class="group-header">
+          <span class="group-label lbl-cookie">3. Cookie</span>
+          <button class="btn-paste" onclick="pasteField('cookie')">📋 Paste Cookie</button>
+        </div>
+        <input type="text" id="inCookie" placeholder="কুকি দিন..." autocomplete="off">
+      </div>
+    </div>
+
+    <div class="action-area">
+      <button class="main-btn btn-convert" id="btnConvert">⚙️ Convert Data</button>
+      <button class="main-btn btn-push" id="btnPush">🚀 Push to Server & Sheet</button>
+    </div>
+
+    <div class="card">
+      <div class="card-title">🔔 নোটিফিকেশন প্যানেল</div>
+      <div class="log-box" id="logBox">
+        <div class="log-item info"><span class="log-time">System</span>সিস্টেম রেডি। লোকাল স্টোরেজ অ্যাক্টিভ।</div>
+      </div>
+    </div>
+
+  </div>
+
+  <script>
+    const SHEET_URL = "https://script.google.com/macros/s/exampl";
+    const WEBHOOK_URL = 'http://43.135.182.151/api/api/v1/webhook/nRlmI2-8T7####EXAMPLh';
+
+    // Elements
+    const defPassInput = document.getElementById('defPassInput');
+    const inUser = document.getElementById('inUser');
+    const inPass = document.getElementById('inPass');
+    const inCookie = document.getElementById('inCookie');
+    const btnConvert = document.getElementById('btnConvert');
+    const btnPush = document.getElementById('btnPush');
+    const logBox = document.getElementById('logBox');
+
+    // State
+    let formattedData = "";
+    let sheetDataObj = null;
+
+    // --- Logger Function ---
+    function addLog(msg, type = 'info') {
+      const div = document.createElement('div');
+      div.className = `log-item ${type}`;
+      div.innerHTML = `<span class="log-time">${new Date().toLocaleTimeString()}</span>${msg}`;
+      logBox.prepend(div);
+    }
+
+    // --- Local Storage & Init ---
+    window.onload = () => {
+      const savedPass = localStorage.getItem('defaultAccountPass');
+      if(savedPass) {
+        defPassInput.value = savedPass;
+        inPass.value = savedPass; // সেট হওয়া মাত্রই পাসওয়ার্ড ফিল্ডে বসে যাবে
+      }
+      checkFields();
+    };
+
+    defPassInput.addEventListener('input', () => {
+      const val = defPassInput.value.trim();
+      localStorage.setItem('defaultAccountPass', val);
+      inPass.value = val; // ডিফল্ট চেঞ্জ করলে মেইন পাসওয়ার্ডও চেঞ্জ হবে
+      checkFields();
+    });
+
+    // --- Paste Logic ---
+    async function pasteField(field) {
+      try {
+        const text = await navigator.clipboard.readText();
+        if(!text) return addLog("Clipboard খালি!", "error");
+        
+        if(field === 'user') { inUser.value = text.trim(); }
+        if(field === 'pass') { inPass.value = text.trim(); }
+        if(field === 'cookie') { inCookie.value = text.trim(); }
+        
+        addLog(`[${field.toUpperCase()}] ফিল্ডে ডেটা পেস্ট হয়েছে।`, "info");
+        checkFields();
+      } catch(e) {
+        addLog("ব্রাউজারের ক্লিপবোর্ড পারমিশন দিন!", "error");
+      }
+    }
+
+    // ম্যানুয়াল টাইপ করলেও বাটন চেক করবে
+    inUser.addEventListener('input', checkFields);
+    inPass.addEventListener('input', checkFields);
+    inCookie.addEventListener('input', checkFields);
+
+    function checkFields() {
+      // যখনই নতুন কিছু ইনপুট হবে, Push বাটন হাইড হয়ে যাবে
+      btnPush.style.display = 'none';
+      
+      const u = inUser.value.trim();
+      const p = inPass.value.trim();
+      const c = inCookie.value.trim();
+
+      if(u && p && c) {
+        btnConvert.style.display = 'block'; // তিনটি পূরণ হলে কনভার্ট বাটন আসবে
+      } else {
+        btnConvert.style.display = 'none';
+      }
+    }
+
+    // --- Convert Logic ---
+    btnConvert.addEventListener('click', () => {
+      const u = inUser.value.trim();
+      const p = inPass.value.trim();
+      const c = inCookie.value.trim();
+
+      if(!c.includes('=')) {
+        return addLog("❌ কুকি সঠিক নয়! কুকিতে '=' থাকতে হবে।", "error");
+      }
+
+      // Format Data
+      formattedData = `${u}:${p}|||${c}||`;
+      sheetDataObj = {
+        date: new Date().toLocaleDateString('en-GB'),
+        time: new Date().toLocaleTimeString(),
+        user: u, pass: p, cookie: c
+      };
+
+      addLog("✔️ ডেটা কনভার্ট হয়েছে! এখন Push করতে পারেন।", "success");
+      btnConvert.style.display = 'none'; // Convert লুকাবে
+      btnPush.style.display = 'block'; // Push দেখাবে
+    });
+
+    // --- Push Logic (Dual Notification) ---
+    btnPush.addEventListener('click', async () => {
+      btnPush.style.display = 'none'; // ডাবল ক্লিক রোধ করতে হাইড করা হলো
+      addLog("সার্ভারে (Webhook) পাঠানো হচ্ছে...", "info");
+
+      let webhookSuccess = false;
+
+      // [1] Webhook Push
+      try {
+        const payload = `accounts=${btoa(formattedData)}`;
+        const whRes = await fetch(WEBHOOK_URL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'text/plain' },
+          body: payload
+        });
+        
+        const reply = await whRes.text();
+        if(whRes.ok) {
+          addLog(`<b>[১] Webhook সফল:</b><br>${reply}`, "success");
+          webhookSuccess = true;
+        } else {
+          addLog(`<b>[১] Webhook ফেইল:</b><br>Status: ${whRes.status} - ${reply}`, "error");
+        }
+      } catch(err) {
+        addLog(`<b>[১] Webhook এরর:</b><br>${err.message}`, "error");
+      }
+
+      // যদি সার্ভারে পুশ ফেইল হয়, গুগল শিটে যাবে না
+      if(!webhookSuccess) {
+        addLog("⚠️ সার্ভার এররের কারণে গুগল শিটে সেভ করা বন্ধ করা হয়েছে।", "error");
+        btnPush.style.display = 'block'; // আবার চেষ্টা করার জন্য বাটন ফেরত আসবে
+        return;
+      }
+
+      // [2] Google Sheet Push
+      addLog("গুগল শিটে সেভ করা হচ্ছে...", "info");
+      try {
+        await fetch(SHEET_URL, {
+          method: "POST",
+          mode: "no-cors",
+          headers: { "Content-Type": "text/plain" },
+          body: JSON.stringify([sheetDataObj]) // Array আকারে পাঠানো হচ্ছে
+        });
+
+        addLog(`<b>[২] Google Sheet সফল:</b><br>ডেটা সফলভাবে শিটে যুক্ত হয়েছে!`, "success");
+
+        // সবকিছু সফল হলে নতুন এন্ট্রির জন্য বক্সগুলো পরিষ্কার করা
+        inUser.value = '';
+        inCookie.value = '';
+        inPass.value = defPassInput.value; // পাসওয়ার্ড আবার ডিফল্ট এ ফিরে যাবে
+        formattedData = "";
+        sheetDataObj = null;
+        checkFields(); // বাটন হাইড করে দেওয়া
+
+        addLog("✨ সিস্টেম নতুন এন্ট্রির জন্য প্রস্তুত।", "info");
+
+      } catch(err) {
+        addLog(`<b>[২] Google Sheet এরর:</b><br>${err.message}`, "error");
+        btnPush.style.display = 'block';
+      }
+    });
+
+  </script>
+</body>
+</html>
